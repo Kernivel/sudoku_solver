@@ -25,8 +25,8 @@ test_loss, test_acc = model.evaluate(xTest,  yTest, verbose=2)
 print('\nTest accuracy:', test_acc)
 probability_model = tf.keras.Sequential([model,tf.keras.layers.Softmax()])
 predictions = probability_model.predict(xTest)
-for i in range(20):
-    plt.subplot(5,4,i+1)
+for i in range(100):
+    plt.subplot(10,10,i+1)
     plt.imshow(xTest[i],cmap=plt.cm.binary)
     plt.xticks([])
     plt.yticks([])

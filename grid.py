@@ -36,7 +36,7 @@ while True:
             approx = cv2.approxPolyDP(contour,0.01*cv2.arcLength(contour,True),True)
             if len(approx == 4):
                 mask = np.zeros(image.shape,np.uint8)
-                cv2.drawContours(image,contours,i,(255,0,0),2)
+                cv2.drawContours(image,contours,i,(255,255,0),2)
 
     #Showing images
     cv2.imshow("Og", image)
@@ -49,5 +49,12 @@ while True:
         print("Esc pressed")
         break
 
+#Flatten the grid
+flatImage = getPerspective(grayImage,approx)
+flatImageBlur = cv2.GaussianBlur(flatImage,(5,5),1)
+flatImageTresh = cv2.adaptiveThreshold(flatImageBlur,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,9,3)
+cv2.imshow("Isolated",flatImageTresh)
+
+cv2.waitKey(2000)
 cam.release()
 cv2.destroyAllWindows()
