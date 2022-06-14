@@ -1,8 +1,9 @@
 from asyncio import threads
 from pickletools import uint8
+from re import A
 import cv2
 import numpy as np
-#import tensorflow as tf
+import tensorflow as tf
 from matplotlib import pyplot as plt
 
 def getPerspective(img,location,height = 900, width = 900):
@@ -54,7 +55,28 @@ flatImage = getPerspective(grayImage,approx)
 flatImageBlur = cv2.GaussianBlur(flatImage,(5,5),1)
 flatImageTresh = cv2.adaptiveThreshold(flatImageBlur,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,9,3)
 cv2.imshow("Isolated",flatImageTresh)
-
 cv2.waitKey(2000)
+
 cam.release()
 cv2.destroyAllWindows()
+
+#Go through the sudoku grid
+sudoku = np.zeros((9,9),np.int8)
+allInput = []
+
+for idx,x in np.ndenumerate(sudoku):
+    i = idx[0]
+    j = idx[1]
+    cellImage = flatImageTresh[i*100+5:i*100+90,j*100+5:j*100+90]
+    cellImageBlurred = cv2.GaussianBlur(cellImage,(5,5),2)
+    cellImageInput = cv2.resize(cellImageBlurred,(28,28))
+    input = np.asarray(cellImageInput,dtype=np.float32)
+    allInput.append(input)
+
+#Load the MNIST model
+MNIST_model = tf.keras.models.load_model('saved_model/MNIST')
+
+
+arg = tf.convert_to_tensor(allInput)
+probability_model = tf.keras.Sequential([MNIST_model,tf.keras.layers.Softmax()])
+predictions = probability_model.predict(arg)
