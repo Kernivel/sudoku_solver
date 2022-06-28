@@ -9,59 +9,108 @@ import ast
 import csv
 
 def gridSolver(grid):
-    print("Start solving")
     for i in range(81):
-        
         #positions
         col = i%9
         row = i//9
-
-        print("Pos :[",str(col),str(row),"]")
+        squareRow = row//3
+        squareCol = col//3
+        print("At i :",str(i),"val is :",str(grid[row][col]),"Pos :[",str(row),",",str(col),"] Square :(",str(squareRow),",",str(squareCol),")")
         
         #Test solution only if the current case is empty
-        if(grid[row][col] == 0):
-            #Test the 3 conditions to put a number (Do so for the 9 possible digits)
-            #Is my number already in the column
-            #Is my nummber already in the row
-            #Is my number already in the square (3*3)
-            for val in range(1,10):
-                #Check if number is in the row
-                if val in grid[row]:
-                    continue
-                #If number was not in the row check if it is in the col
-                if val in (grid[0][col],grid[1][col],grid[2][col],grid[3][col],grid[4][col],grid[5][col],grid[6][col],grid[7][col],grid[8][col]):
-                    continue
-                #If it's not in the col check if it is in the current square
-                #Get the current square number
-                squareRow = row//3
-                squareCol = col//3
+        if grid[row][col] == 0:
+        #     #Test the 3 conditions to put a number (Do so for the 9 possible digits)
+        #     #Is my number already in the column
+        #     #Is my nummber already in the row
+        #     #Is my number already in the square (3*3)
+            for newDigit in range(1,10):
+                #print("Testing ",str(newDigit))
+                if newDigit not in grid[row]:
+                    #print(str(newDigit), "not in row")
+                    if newDigit not in (grid[0][col],grid[1][col],grid[2][col],grid[3][col],grid[4][col],grid[5][col],grid[6][col],grid[7][col],grid[8][col]):
+                        #print(str(newDigit), "not in col")
+                        startRow = squareRow*3
+                        startCol = squareCol*3
+                        flagValueInSquare = False
+                        for k in range(startRow,startRow+3):
+                            for l in range(startCol,startCol+3):
+                                if newDigit == grid[k][l]:
+                                    flagValueInSquare = True
+                        if not flagValueInSquare:
+                            #print(str(newDigit), "not in case")
+                            grid[row][col] = newDigit
+                            #print("Changed to :",str(grid[row][col]))
+                            if checkGrid(grid):
+                                return True
+                            if gridSolver(grid):
+                                return True
+            break
+    grid[row][col] = 0
+            
+            
+            
+    
+#A function to check if the grid is full
+def checkGrid(grid):
+    for row in range(0,9):
+        for col in range(0,9):
+            if grid[row][col]==0:
+                return False
+    return True
 
-                for k in range(3):
-                    for l in range(3):
-                        kRow = 9*squareRow+k
-                        lCol = 9*squareCol+l
-                        #If we are checking the same case
-                        if kRow == row and lCol == col:
-                            continue
-                        #Check if the number is already in the case
-                        if grid[kRow][lCol] == val:
-                            break
-                #If the number isn't in the square we have checked all the condition to add this number to the grid.py
-                grid[col][row] = val
-                #If we are done with the grid : stop there / else do the solving function on the rest of the grid
-                if i == 80:
-                    return True
-                else:
-                    if gridSolver(grid):
-                        return True
-        #No tested digits worked : we have to backtrack
-        grid[col][row] = 0
+#A backtracking/recursive function to check all possible combinations of numbers until a solution is found
+def solveGrid(grid):
+  #Find next empty cell
+  for i in range(0,81):
+    row=i//9
+    col=i%9
+    if grid[row][col]==0:
+      for value in range (1,10):
+        #Check that this value has not already be used on this row
+        if not(value in grid[row]):
+          #Check that this value has not already be used on this column
+          if not value in (grid[0][col],grid[1][col],grid[2][col],grid[3][col],grid[4][col],grid[5][col],grid[6][col],grid[7][col],grid[8][col]):
+            #Identify which of the 9 squares we are working on
+            square=[]
+            if row<3:
+              if col<3:
+                square=[grid[i][0:3] for i in range(0,3)]
+              elif col<6:
+                square=[grid[i][3:6] for i in range(0,3)]
+              else:  
+                square=[grid[i][6:9] for i in range(0,3)]
+            elif row<6:
+              if col<3:
+                square=[grid[i][0:3] for i in range(3,6)]
+              elif col<6:
+                square=[grid[i][3:6] for i in range(3,6)]
+              else:  
+                square=[grid[i][6:9] for i in range(3,6)]
+            else:
+              if col<3:
+                square=[grid[i][0:3] for i in range(6,9)]
+              elif col<6:
+                square=[grid[i][3:6] for i in range(6,9)]
+              else:  
+                square=[grid[i][6:9] for i in range(6,9)]
+            #Check that this value has not already be used on this 3x3 square
+            if not value in (square[0] + square[1] + square[2]):
+              grid[row][col]=value
+              if checkGrid(grid):
+                print("Grid Complete and Checked")
+                return True
+              else:
+                if solveGrid(grid):
+                  return True
+      break
+  print("Backtrack")
+  grid[row][col]=0  
 
 with open('assets/sudoku.csv', newline='') as f:
     reader = csv.reader(f)
     dataCSV = list(reader)
-    #print(dataCSV)
     
 
-grid = dataCSV
-print("Hello")
+grid = [list(map(int,i) ) for i in dataCSV]
+gridSolver(grid)
+print(grid)
